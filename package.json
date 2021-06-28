@@ -3,11 +3,13 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
+    "@mediapipe/pose": "^0.4.1624666670",
+    "@tensorflow-models/pose-detection": "0.0.3",
+    "@tensorflow/tfjs": "^1.5.2",
+    "node-sass": "^6.0.1",
     "react": "^17.0.2",
     "react-dom": "^17.0.2",
-    "react-scripts": "4.0.3",
-    "@tensorflow-models/posenet": "^2.2.1",
-    "@tensorflow/tfjs": "^1.5.2"
+    "react-scripts": "4.0.3"
   },
   "scripts": {
     "start": "react-scripts start",

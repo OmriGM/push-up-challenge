@@ -1,6 +1,6 @@
 # Push Up Challenge
 
-_#####Online fun push-up game with AI counter!_
+##### Online AI push up counter
 
 ## How to Run This Project
 In your terminal run:

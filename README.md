@@ -1,6 +1,7 @@
 # Push Up Challenge
 
-##### Online AI push up counter
+#### Online Push Up Counter Based on AI technologies
+##### Online Demo: https://push-up-challenge.herokuapp.com/
 
 ## How to Run This Project
 In your terminal run:

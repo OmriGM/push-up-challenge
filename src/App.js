@@ -14,7 +14,8 @@ import InCorrectIcon from './assets/cancel.png'
 import './App.css';
 
 
-const fps = 1
+const fps = 2
+const PUSH_UP_ANGLE = 65
 const videoSize = Object.freeze({ width: 550, height: 412 })
 const pushUpPoses = Object.freeze({ NEUTRAL: 'neutral', HALF: 'half', FULL: 'full' })
 const armKeyPoints = ['left_shoulder', 'right_shoulder', 'right_wrist', 'left_wrist', 'right_elbow', 'left_elbow']
@@ -32,40 +33,48 @@ const socialMedias = [
 ]
 
 const App = () => {
-    let poseDetectionModel
+    const [model, setModel] = useState(null)
     const [currentPushUpPose, setCurrentPushUpPose] = useState(pushUpPoses.NEUTRAL)
     const [pushUpCount, setPushUpCount] = useState(0)
     const [isUserPositioned, setIsUserPositioned] = useState(false)
     const [bodyDirection, setBodyDirection] = useState(null)
+    const [isVideoReady, setVideoReady] = useState(false)
     const videoRef = useRef(null)
 
 
     useEffect(async () => {
-        poseDetectionModel = await loadPoseModel()
+        const poseDetectionModel = await loadPoseModel()
+        poseDetectionModel && console.log('loaded model', poseDetectionModel);
         await setupCamera()
+        setModel(poseDetectionModel)
     }, [])
 
     useEffect(() => {
-        if(isUserPositioned) {
-            setPushUpCount(pushUpCount+1)
+        if(isVideoReady && model) {
+            startDetectingPose()
         }
-    }, [])
+    }, [isVideoReady, model])
 
+    const resetScore = () => {
+        setPushUpCount(0)
+    }
     const startDetectingPose = async () => {
-        if (poseDetectionModel && videoRef.current) {
-            const result = await poseDetectionModel.estimatePoses(videoRef.current)
+        if (model && videoRef.current) {
+            const result = await model.estimatePoses(videoRef.current)
             const [firstPerson] = result
             const armKeyPoints = getArmKeyPoints(firstPerson)
 
             const { leftArmAngle, rightArmAngle } = calculateArmsAngels(armKeyPoints)
-            const pushUpCompleted = calculatePushUp(leftArmAngle, rightArmAngle)
-            setIsUserPositioned(pushUpCompleted)
+            const isPushUpCompleted = calculatePushUp(leftArmAngle, rightArmAngle)
+            if(isPushUpCompleted) {
+                setPushUpCount(pushUpCount => pushUpCount+1)
+            }
 
             setTimeout(() => requestAnimationFrame(startDetectingPose), 1000 / fps)
         }
     }
 
-    const calculatePushUp = (leftArmDegrees, rightArmDegrees) => (leftArmDegrees <= 80 && rightArmDegrees <= 80)
+    const calculatePushUp = (leftArmDegrees, rightArmDegrees) => (leftArmDegrees <= PUSH_UP_ANGLE && rightArmDegrees <= PUSH_UP_ANGLE)
 
     const calculateArmsAngels = ({ left_shoulder, right_shoulder, right_wrist, left_wrist, right_elbow, left_elbow }) =>
         ({
@@ -117,9 +126,10 @@ const App = () => {
                     }
                 </div>
             </div>
-            <h1 onClick={() => setPushUpCount(pushUpCount + 1)}>Push up count: {pushUpCount}</h1>
+            <h1>Push up count: {pushUpCount}</h1>
+            <button onClick={() => resetScore}>Reset</button>
             <div>
-                <img src={isUserPositioned ? CorrectIcon : InCorrectIcon} alt="inCorrectIcon"/>
+                {/*<img src={isUserPositioned ? CorrectIcon : InCorrectIcon} alt="inCorrectIcon"/>*/}
                 <video
                     ref={videoRef}
                     id={'stream-video'}
@@ -129,7 +139,8 @@ const App = () => {
                     width={videoSize.width}
                     height={videoSize.height}
                     className={'stream-video'}
-                    onLoadedData={() => requestAnimationFrame(startDetectingPose)}
+                    // onLoadedData={() => requestAnimationFrame(startDetectingPose)}
+                    onLoadedData={() => setVideoReady(true)}
                 />
             </div>
         </div>
